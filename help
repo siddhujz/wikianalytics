@@ -1,0 +1,91 @@
+
+#Copy file to EMR
+sudo scp -r -i ~/.ssh/cs5630s17.pem workdir/cloud/working/wiki.py skodali@cs5630s17.mooo.com:wikidir/
+
+#Login
+sudo ssh -i cs5630s17.pem skodali@cs5630s17.mooo.com
+
+#Run with spark
+spark-submit wiki.py 2> log > hold
+
+###################################################################################################################
+#Do this before running spark-submit
+export NLTK_DATA="/mnt1/nltk_data"
+export PATH=${PATH}:${NLTK_DATA}
+
+
+#Copy file to Lab Machine
+sudo scp -P 16120 -i ~/.ssh/cs5630s17.pem workdir/cloud/working/wiki.py skodali@cs5630s17.strangled.net:/home/skodali/wikidir
+
+#Login
+sudo ssh -i cs5630s17.pem skodali@cs5630s17.strangled.net
+ssh IACloud
+
+#Move file from host machine to hdfs file system
+hdfs dfs -put part0001
+
+export PATH=$PATH:/home/kaliis/workdir/cloud/working/stanford-ner-2016-10-31
+
+export NLTK_DATA=/mnt2/nltk_data
+export PATH=${PATH}:${NLTK_DATA}
+
+os.environ['PATH'] = os.environ['PATH'] + ":/mnt2/nltk_data"
+
+export STANFORDTOOLSDIR=/mnt2
+export CLASSPATH=${CLASSPATH}:$STANFORDTOOLSDIR/stanford-ner-2016-10-31/stanford-ner.jar
+export STANFORD_MODELS=$STANFORDTOOLSDIR/stanford-ner-2016-10-31/classifiers
+
+#My laptop path
+stanford_dir = '/home/kaliis/workdir/cloud/working/stanford-ner-2016-10-31/'
+jarfile = stanford_dir + 'stanford-ner.jar'
+modelfile = stanford_dir + 'classifiers/english.all.3class.distsim.crf.ser.gz'
+
+st = StanfordNERTagger(model_filename=modelfile, path_to_jar=jarfile)
+
+
+
+###################################################################################################################
+
+cd $HOME
+# Update / Install NLTK
+pip install -U nltk
+
+# Download the Stanford NLP tools
+wget http://nlp.stanford.edu/software/stanford-ner-2015-04-20.zip
+wget http://nlp.stanford.edu/software/stanford-postagger-full-2015-04-20.zip
+wget http://nlp.stanford.edu/software/stanford-parser-full-2015-04-20.zip
+# Extract the zip file.
+unzip stanford-ner-2015-04-20.zip 
+unzip stanford-parser-full-2015-04-20.zip 
+unzip stanford-postagger-full-2015-04-20.zip
+
+export STANFORDTOOLSDIR=$HOME
+
+export CLASSPATH=$STANFORDTOOLSDIR/stanford-postagger-full-2015-04-20/stanford-postagger.jar:$STANFORDTOOLSDIR/stanford-ner-2015-04-20/stanford-ner.jar:$STANFORDTOOLSDIR/stanford-parser-full-2015-04-20/stanford-parser.jar:$STANFORDTOOLSDIR/stanford-parser-full-2015-04-20/stanford-parser-3.5.2-models.jar
+
+export STANFORD_MODELS=$STANFORDTOOLSDIR/stanford-postagger-full-2015-04-20/models:$STANFORDTOOLSDIR/stanford-ner-2015-04-20/classifiers
+
+
+
+>>> from nltk.tag.stanford import StanfordPOSTagger
+>>> st = StanfordPOSTagger('english-bidirectional-distsim.tagger')
+>>> st.tag('What is the airspeed of an unladen swallow ?'.split())
+[(u'What', u'WP'), (u'is', u'VBZ'), (u'the', u'DT'), (u'airspeed', u'NN'), (u'of', u'IN'), (u'an', u'DT'), (u'unladen', u'JJ'), (u'swallow', u'VB'), (u'?', u'.')]
+
+>>> from nltk.tag import StanfordNERTagger
+>>> st = StanfordNERTagger('english.all.3class.distsim.crf.ser.gz') 
+>>> st.tag('Rami Eid is studying at Stony Brook University in NY'.split())
+[(u'Rami', u'PERSON'), (u'Eid', u'PERSON'), (u'is', u'O'), (u'studying', u'O'), (u'at', u'O'), (u'Stony', u'ORGANIZATION'), (u'Brook', u'ORGANIZATION'), (u'University', u'ORGANIZATION'), (u'in', u'O'), (u'NY', u'O')]
+
+
+>>> from nltk.parse.stanford import StanfordParser
+>>> parser=StanfordParser(model_path="edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz")
+>>> list(parser.raw_parse("the quick brown fox jumps over the lazy dog"))
+[Tree('ROOT', [Tree('NP', [Tree('NP', [Tree('DT', ['the']), Tree('JJ', ['quick']), Tree('JJ', ['brown']), Tree('NN', ['fox'])]), Tree('NP', [Tree('NP', [Tree('NNS', ['jumps'])]), Tree('PP', [Tree('IN', ['over']), Tree('NP', [Tree('DT', ['the']), Tree('JJ', ['lazy']), Tree('NN', ['dog'])])])])])])]
+
+>>> from nltk.parse.stanford import StanfordDependencyParser
+>>> dep_parser=StanfordDependencyParser(model_path="edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz")
+>>> print [parse.tree() for parse in dep_parser.raw_parse("The quick brown fox jumps over the lazy dog.")]
+[Tree('jumps', [Tree('fox', ['The', 'quick', 'brown']), Tree('dog', ['over', 'the', 'lazy'])])]
+
+
