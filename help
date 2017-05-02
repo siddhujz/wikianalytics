@@ -6,7 +6,8 @@ sudo scp -r -i ~/.ssh/cs5630s17.pem workdir/cloud/working/wiki.py skodali@cs5630
 sudo ssh -i cs5630s17.pem skodali@cs5630s17.mooo.com
 
 #Run with spark
-spark-submit wiki.py 2> log > hold
+spark-submit --conf spark.executorEnv.NLTK_DATA=/mnt1/nltk_data wiki-v4.py 2> log-v4 > hold-v4
+spark-submit wiki-v4.py 2> log > hold
 
 ###################################################################################################################
 #Do this before running spark-submit
